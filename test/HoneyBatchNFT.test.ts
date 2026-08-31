@@ -88,14 +88,49 @@ describe("HoneyBatchNFT", async function () {
       const batch =
         await honeyBatchNFT.read.getBatch([1n]);
 
-assert.equal(batch.batchId, "HONEY001");
-assert.equal(batch.hiveId, "HIVE001");
-assert.equal(batch.beekeeperId, "BK001");
-assert.equal(batch.metadataURI, "ipfs://metadata");
-assert.equal(batch.dataCommitment, commitment);
+      assert.equal(batch.batchId, "HONEY001");
+      assert.equal(batch.hiveId, "HIVE001");
+      assert.equal(batch.beekeeperId, "BK001");
+      assert.equal(batch.metadataURI, "ipfs://metadata");
+      assert.equal(batch.dataCommitment, commitment);
 
-// RAW_HARVEST = 0
-assert.equal(Number(batch.state), 0);
+      // RAW_HARVEST = 0
+      assert.equal(Number(batch.state), 0);
+    });
+
+    it("should reject duplicate batch IDs", async function () {
+      const commitment = keccak256(stringToHex("HONEY_DATA_001"));
+
+      await honeyBatchNFT.write.mintBatch(
+        ["HONEY_DUP", "HIVE001", "BK001", "ipfs://meta1", commitment],
+        { account: owner.account.address }
+      );
+
+      await assert.rejects(async () => {
+        await honeyBatchNFT.write.mintBatch(
+          ["HONEY_DUP", "HIVE002", "BK002", "ipfs://meta2", commitment],
+          { account: owner.account.address }
+        );
+      });
+    });
+
+    it("should support getBatchByBatchId lookup and totalBatches count", async function () {
+      const commitment = keccak256(stringToHex("LOOKUP_TEST"));
+
+      await honeyBatchNFT.write.mintBatch(
+        ["HONEY_LOOKUP", "HIVE_LOOKUP", "BK_LOOKUP", "ipfs://lookup", commitment],
+        { account: owner.account.address }
+      );
+
+      const [batch, tokenId] = await honeyBatchNFT.read.getBatchByBatchId(["HONEY_LOOKUP"]);
+      assert.equal(batch.batchId, "HONEY_LOOKUP");
+      assert.equal(Number(tokenId), 1);
+
+      const total = await honeyBatchNFT.read.totalBatches();
+      assert.equal(Number(total), 1);
+
+      const tokenURI = await honeyBatchNFT.read.tokenURI([1n]);
+      assert.equal(tokenURI, "ipfs://lookup");
     });
   });
 
