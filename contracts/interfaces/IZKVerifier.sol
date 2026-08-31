@@ -16,5 +16,5 @@ interface IZKVerifier {
     function verifyProof(
         bytes calldata proof,
         uint256[] calldata publicInputs
-    ) external view returns (bool isValid);
+    ) external returns (bool isValid);
 }

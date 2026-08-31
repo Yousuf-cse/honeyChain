@@ -73,7 +73,7 @@ contract HoneyZKVerifier is IZKVerifier, AccessControl {
     function verifyProof(
         bytes calldata proof,
         uint256[] calldata publicInputs
-    ) external view override returns (bool isValid) {
+    ) external override returns (bool isValid) {
         if (!verificationEnabled) {
             return false;
         }
@@ -86,7 +86,10 @@ contract HoneyZKVerifier is IZKVerifier, AccessControl {
             return false;
         }
 
+        bytes32 commitment = bytes32(publicInputs[0]);
+
         if (proof.length < 32) {
+            emit ProofVerificationAttempted(commitment, false, block.timestamp);
             return false;
         }
 
@@ -99,6 +102,7 @@ contract HoneyZKVerifier is IZKVerifier, AccessControl {
         uint256 timestampEnd = publicInputs[6];
 
         if (minTemp > maxTemp || minHumidity > maxHumidity || timestampStart > timestampEnd) {
+            emit ProofVerificationAttempted(commitment, false, block.timestamp);
             return false;
         }
 
@@ -107,6 +111,7 @@ contract HoneyZKVerifier is IZKVerifier, AccessControl {
         // against circuit parameters and public input commitment.
         bytes32 proofHash = keccak256(proof);
         if (proofHash == bytes32(0)) {
+            emit ProofVerificationAttempted(commitment, false, block.timestamp);
             return false;
         }
 
@@ -118,9 +123,11 @@ contract HoneyZKVerifier is IZKVerifier, AccessControl {
             leadingBytes := calldataload(proof.offset)
         }
         if (leadingBytes == bytes32(0)) {
+            emit ProofVerificationAttempted(commitment, false, block.timestamp);
             return false;
         }
 
+        emit ProofVerificationAttempted(commitment, true, block.timestamp);
         return true;
     }
 }

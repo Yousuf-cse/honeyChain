@@ -60,6 +60,32 @@ describe("HoneyBatchNFT", async function () {
 
       assert.equal(hasRole, true);
     });
+
+    it("should give deployer the batch minter role", async function () {
+      const BATCH_MINTER_ROLE =
+        await honeyBatchNFT.read.BATCH_MINTER_ROLE();
+
+      const hasRole =
+        await honeyBatchNFT.read.hasRole([
+          BATCH_MINTER_ROLE,
+          owner.account.address,
+        ]);
+
+      assert.equal(hasRole, true);
+    });
+
+    it("should give deployer the lab role", async function () {
+      const LAB_ROLE =
+        await honeyBatchNFT.read.LAB_ROLE();
+
+      const hasRole =
+        await honeyBatchNFT.read.hasRole([
+          LAB_ROLE,
+          owner.account.address,
+        ]);
+
+      assert.equal(hasRole, true);
+    });
   });
 
   // ----------------------------------------
@@ -296,5 +322,90 @@ describe("HoneyBatchNFT", async function () {
         });
       }
     );
+
+    it("should allow BATCH_MINTER_ROLE to mint batches", async function () {
+      const BATCH_MINTER_ROLE = await honeyBatchNFT.read.BATCH_MINTER_ROLE();
+
+      // Grant minter role to user
+      await honeyBatchNFT.write.grantRole(
+        [BATCH_MINTER_ROLE, user.account.address],
+        { account: owner.account.address }
+      );
+
+      const commitment = keccak256(stringToHex("MINTER_TEST"));
+      await honeyBatchNFT.write.mintBatch(
+        ["HONEY-MINTER", "HIVE-M", "BK-M", "ipfs://minter", commitment],
+        { account: user.account.address }
+      );
+
+      const batch = await honeyBatchNFT.read.getBatch([1n]);
+      assert.equal(batch.batchId, "HONEY-MINTER");
+    });
+
+    it("should allow LAB_ROLE to transition to LAB_VERIFIED", async function () {
+      const LAB_ROLE = await honeyBatchNFT.read.LAB_ROLE();
+
+      // Grant lab role to user
+      await honeyBatchNFT.write.grantRole(
+        [LAB_ROLE, user.account.address],
+        { account: owner.account.address }
+      );
+
+      const commitment = keccak256(stringToHex("LAB_TEST"));
+      await honeyBatchNFT.write.mintBatch(
+        ["HONEY-LAB", "HIVE-L", "BK-L", "ipfs://lab", commitment],
+        { account: owner.account.address }
+      );
+
+      // User with LAB_ROLE can verify
+      await honeyBatchNFT.write.updateState([1n, 1], {
+        account: user.account.address,
+      });
+
+      const batch = await honeyBatchNFT.read.getBatch([1n]);
+      assert.equal(Number(batch.state), 1); // LAB_VERIFIED
+    });
+
+    it("should reject LAB_VERIFIED transition from non-LAB_ROLE user", async function () {
+      const commitment = keccak256(stringToHex("NO_LAB"));
+      await honeyBatchNFT.write.mintBatch(
+        ["HONEY-NOLAB", "HIVE-N", "BK-N", "ipfs://nolab", commitment],
+        { account: owner.account.address }
+      );
+
+      // user has no LAB_ROLE
+      await assert.rejects(async () => {
+        await honeyBatchNFT.write.updateState([1n, 1], {
+          account: user.account.address,
+        });
+      });
+    });
+
+    it("should reject PACKAGED_RETAIL transition from non-BATCH_MINTER_ROLE user", async function () {
+      const commitment = keccak256(stringToHex("NO_MINTER"));
+      await honeyBatchNFT.write.mintBatch(
+        ["HONEY-NOMINT", "HIVE-NM", "BK-NM", "ipfs://nomint", commitment],
+        { account: owner.account.address }
+      );
+
+      // Move to LAB_VERIFIED first (owner has admin, so allowed)
+      await honeyBatchNFT.write.updateState([1n, 1], {
+        account: owner.account.address,
+      });
+
+      // Grant LAB_ROLE to user but NOT BATCH_MINTER_ROLE
+      const LAB_ROLE = await honeyBatchNFT.read.LAB_ROLE();
+      await honeyBatchNFT.write.grantRole(
+        [LAB_ROLE, user.account.address],
+        { account: owner.account.address }
+      );
+
+      // user with LAB_ROLE but not BATCH_MINTER cannot package
+      await assert.rejects(async () => {
+        await honeyBatchNFT.write.updateState([1n, 2], {
+          account: user.account.address,
+        });
+      });
+    });
   });
 });

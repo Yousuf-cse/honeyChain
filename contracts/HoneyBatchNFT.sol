@@ -83,7 +83,7 @@ contract HoneyBatchNFT is ERC721, AccessControl {
         bytes32 dataCommitment
     )
         external
-        onlyRole(VERIFIER_ROLE)
+        onlyRole(BATCH_MINTER_ROLE)
         returns (uint256)
     {
         require(batchIdToTokenId[batchId] == 0, "Batch ID already exists");
@@ -118,7 +118,6 @@ contract HoneyBatchNFT is ERC721, AccessControl {
         BatchState newState
     )
         external
-        onlyRole(VERIFIER_ROLE)
     {
         require(tokenId > 0 && tokenId < nextTokenId, "Batch does not exist");
         require(
@@ -128,6 +127,18 @@ contract HoneyBatchNFT is ERC721, AccessControl {
             ),
             "Invalid state transition"
         );
+
+        if (newState == BatchState.LAB_VERIFIED) {
+            require(
+                hasRole(LAB_ROLE, msg.sender) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+                "Only LAB_ROLE or admin can verify lab results"
+            );
+        } else if (newState == BatchState.PACKAGED_RETAIL) {
+            require(
+                hasRole(BATCH_MINTER_ROLE, msg.sender) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+                "Only BATCH_MINTER_ROLE or admin can mark packaged"
+            );
+        }
 
         batches[tokenId].state = newState;
 

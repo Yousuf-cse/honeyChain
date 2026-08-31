@@ -179,4 +179,66 @@ describe("HoneyEscrow", async function () {
       assert.equal(Number(escrow.status), 3); // REFUNDED
     });
   });
+
+  describe("Escrow Dispute", function () {
+    beforeEach(async function () {
+      const deposit = parseEther("1.0");
+      await honeyEscrow.write.createEscrow(
+        ["BATCH-DISPUTE", 20n, seller.account.address, arbiter.account.address, 86400n],
+        {
+          account: buyer.account.address,
+          value: deposit,
+        }
+      );
+    });
+
+    it("should allow buyer to dispute a funded escrow", async function () {
+      await honeyEscrow.write.disputeEscrow([1n], {
+        account: buyer.account.address,
+      });
+
+      const escrow = await honeyEscrow.read.getEscrow([1n]);
+      assert.equal(Number(escrow.status), 4); // DISPUTED
+    });
+
+    it("should allow seller to dispute a funded escrow", async function () {
+      await honeyEscrow.write.disputeEscrow([1n], {
+        account: seller.account.address,
+      });
+
+      const escrow = await honeyEscrow.read.getEscrow([1n]);
+      assert.equal(Number(escrow.status), 4); // DISPUTED
+    });
+
+    it("should allow arbiter to dispute a funded escrow", async function () {
+      await honeyEscrow.write.disputeEscrow([1n], {
+        account: arbiter.account.address,
+      });
+
+      const escrow = await honeyEscrow.read.getEscrow([1n]);
+      assert.equal(Number(escrow.status), 4); // DISPUTED
+    });
+
+    it("should reject dispute from unauthorized stranger", async function () {
+      await assert.rejects(async () => {
+        await honeyEscrow.write.disputeEscrow([1n], {
+          account: stranger.account.address,
+        });
+      });
+    });
+
+    it("should not allow dispute on non-FUNDED escrow", async function () {
+      // Release the escrow first
+      await honeyEscrow.write.releaseEscrow([1n], {
+        account: buyer.account.address,
+      });
+
+      // Now try to dispute - should fail
+      await assert.rejects(async () => {
+        await honeyEscrow.write.disputeEscrow([1n], {
+          account: buyer.account.address,
+        });
+      });
+    });
+  });
 });

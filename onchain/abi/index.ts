@@ -235,6 +235,13 @@ export const HoneyEscrowAbi = [
   },
   {
     type: "function",
+    name: "disputeEscrow",
+    inputs: [{ name: "escrowId", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable"
+  },
+  {
+    type: "function",
     name: "getEscrow",
     inputs: [{ name: "escrowId", type: "uint256", internalType: "uint256" }],
     outputs: [
@@ -313,6 +320,15 @@ export const HoneyEscrowAbi = [
       { name: "amount", type: "uint256", indexed: false, internalType: "uint256" }
     ],
     anonymous: false
+  },
+  {
+    type: "event",
+    name: "EscrowDisputed",
+    inputs: [
+      { name: "escrowId", type: "uint256", indexed: true, internalType: "uint256" },
+      { name: "disputer", type: "address", indexed: true, internalType: "address" }
+    ],
+    anonymous: false
   }
 ] as const;
 
@@ -330,7 +346,7 @@ export const HoneyZKVerifierAbi = [
       { name: "publicInputs", type: "uint256[]", internalType: "uint256[]" }
     ],
     outputs: [{ name: "isValid", type: "bool", internalType: "bool" }],
-    stateMutability: "view"
+    stateMutability: "nonpayable"
   },
   {
     type: "function",
@@ -350,6 +366,16 @@ export const HoneyZKVerifierAbi = [
     type: "event",
     name: "VerificationKeyUpdated",
     inputs: [{ name: "newVkHash", type: "bytes32", indexed: false, internalType: "bytes32" }],
+    anonymous: false
+  },
+  {
+    type: "event",
+    name: "ProofVerificationAttempted",
+    inputs: [
+      { name: "commitment", type: "bytes32", indexed: true, internalType: "bytes32" },
+      { name: "success", type: "bool", indexed: true, internalType: "bool" },
+      { name: "timestamp", type: "uint256", indexed: false, internalType: "uint256" }
+    ],
     anonymous: false
   }
 ] as const;

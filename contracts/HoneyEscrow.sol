@@ -230,6 +230,34 @@ contract HoneyEscrow is AccessControl, ReentrancyGuard {
     }
 
     /**
+     * @notice Raises a dispute on a funded escrow.
+     * @dev Callable by buyer, seller, arbiter, or authorized agents.
+     *      Disputed funds remain locked until arbiter/admin resolves via release or refund.
+     * @param escrowId The escrow ID to dispute.
+     */
+    function disputeEscrow(uint256 escrowId)
+        external
+    {
+        Escrow storage escrow = escrows[escrowId];
+        if (escrow.escrowId == 0) revert EscrowNotFound(escrowId);
+        if (escrow.status != EscrowStatus.FUNDED) {
+            revert InvalidEscrowState(EscrowStatus.FUNDED, escrow.status);
+        }
+
+        bool isAuthorized = (msg.sender == escrow.buyer) ||
+                            (msg.sender == escrow.seller) ||
+                            (msg.sender == escrow.arbiter) ||
+                            hasRole(ESCROW_AGENT_ROLE, msg.sender) ||
+                            hasRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        if (!isAuthorized) revert UnauthorizedCaller(msg.sender);
+
+        escrow.status = EscrowStatus.DISPUTED;
+
+        emit EscrowDisputed(escrowId, msg.sender);
+    }
+
+    /**
      * @notice Fetches escrow details by escrow ID.
      */
     function getEscrow(uint256 escrowId)
