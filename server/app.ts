@@ -1,11 +1,13 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import { authRouter } from "./routes/authRoutes.js";
 import { deviceRouter } from "./routes/deviceRoutes.js";
 import { telemetryRouter } from "./routes/telemetryRoutes.js";
 import { verificationRouter } from "./routes/verificationRoutes.js";
 import { createBatchRouter } from "./routes/batchRoutes.js";
 import { ipfsRouter } from "./routes/ipfsRoutes.js";
 import { createEscrowRouter } from "./routes/escrowRoutes.js";
+import { alertRouter } from "./routes/alertRoutes.js";
 import { BatchService } from "../onchain/services/batchService.js";
 import { EscrowService } from "../onchain/services/escrowService.js";
 import { getContractAddresses } from "../onchain/addresses/index.js";
@@ -43,12 +45,14 @@ export function createApp(options?: {
   });
 
   // Mount API v1 Routers
+  app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/devices", deviceRouter);
   app.use("/api/v1/telemetry", telemetryRouter);
   app.use("/api/v1/verification", verificationRouter);
   app.use("/api/v1/batches", createBatchRouter(batchService));
   app.use("/api/v1/ipfs", ipfsRouter);
   app.use("/api/v1/escrow", createEscrowRouter(escrowService));
+  app.use("/api/v1/alerts", alertRouter);
 
   // 404 Handler
   app.use((_req: Request, res: Response) => {

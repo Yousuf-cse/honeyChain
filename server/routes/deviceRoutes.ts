@@ -77,6 +77,28 @@ deviceRouter.get("/:id", (req: Request, res: Response) => {
 });
 
 /**
+ * DELETE /api/v1/devices/:id
+ * Removes a device from the registry.
+ */
+deviceRouter.delete("/:id", (req: Request, res: Response) => {
+  const id = String(req.params.id);
+
+  if (!deviceRegistry.has(id)) {
+    return res.status(404).json({
+      success: false,
+      error: `Device '${id}' not found in registry`,
+    });
+  }
+
+  deviceRegistry.delete(id);
+
+  return res.json({
+    success: true,
+    message: "Device deleted successfully",
+  });
+});
+
+/**
  * GET /api/v1/devices
  * Lists all registered devices.
  */
