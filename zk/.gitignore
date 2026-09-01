@@ -1,4 +1,3 @@
 artifacts/
-setup/*.ptau
-setup/*.zkey
+setup/pot12_*.ptau
 setup/circuit_0000.zkey
