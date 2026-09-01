@@ -1,3 +1,6 @@
-artifacts/
+artifacts/*.r1cs
+artifacts/*.sym
+artifacts/*_js/generate_witness.js
+artifacts/*_js/witness_calculator.js
 setup/pot12_*.ptau
 setup/circuit_0000.zkey
