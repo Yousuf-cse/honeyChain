@@ -1,0 +1,16 @@
+node_modules
+.git
+.github
+*.md
+.env
+.env.*
+!.env.example
+test/
+scripts/
+ignition/
+firmware/
+ml-service/
+zk/artifacts/
+zk/setup/*.ptau
+zk/setup/circuit_0000.zkey
+contracts/*.t.sol
