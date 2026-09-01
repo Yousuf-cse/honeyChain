@@ -1,0 +1,10 @@
+{
+  "network": "localhost",
+  "deployer": "0xe8f70e408df0a64da40baf68c477d354260d51b5",
+  "timestamp": "2026-09-01T05:31:40.310Z",
+  "contracts": {
+    "honeyZKVerifier": "0xdb028c88d43ee9e8f85c9f36a80e111fb7d239ae",
+    "honeyBatchNFT": "0x5d7018cafbb63568ce4791057142329ab1187987",
+    "honeyEscrow": "0x2ea35397f4288c329b335bad077bbc6b6071fec2"
+  }
+}
