@@ -1,0 +1,4 @@
+artifacts/
+setup/*.ptau
+setup/*.zkey
+setup/circuit_0000.zkey
