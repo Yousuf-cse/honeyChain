@@ -1,0 +1,5 @@
+# HoneyChain ESP32 Simulator Dependencies
+# No external packages required — uses only Python stdlib.
+# If you want richer output or testing:
+# pytest>=7.0
+# rich>=13.0
